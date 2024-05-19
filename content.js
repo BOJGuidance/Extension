@@ -73,20 +73,20 @@ function addStatusTableButtons() {
     if (table) {
         var rows = table.getElementsByTagName('tr');
         for (var i = 1; i < rows.length; i++) { // Start from 1 to skip the header row
-            var row = rows[i];
-            var submitIdCell = row.getElementsByTagName('td')[0]; // Assuming the first cell has the submit ID
-            var submitId = submitIdCell.innerText.trim();
+            let row = rows[i];
+            let submitIdCell = row.getElementsByTagName('td')[0]; // Assuming the first cell has the submit ID
+            let submitId = submitIdCell.innerText.trim();
 
-            var buttonCell = row.insertCell(-1); // Insert a cell at the end of the row
-            var button = document.createElement('button');
+            let buttonCell = row.insertCell(-1); // Insert a cell at the end of the row
+            let button = document.createElement('button');
             button.innerText = 'New Button';
 
             button.addEventListener('click', function(event) {
                 event.stopPropagation();
                 event.preventDefault();
 
-                var url = `${baseUrl}${submitId}`;
-                var newWindow = window.open(url, '_blank');
+                let url = `${baseUrl}${submitId}`;
+                let newWindow = window.open(url, '_blank');
 
                 if (newWindow) {
                     // Ensure the new window is fully loaded before attempting to access its content
@@ -95,7 +95,7 @@ function addStatusTableButtons() {
                     }, 1000);  // 1초 대기 후 postMessage 전송
 
                     // Listen for messages from the new window
-                    window.addEventListener('message', async function(event) {
+                    const messageHandler = async function(event) {
                         if (event.origin !== 'https://www.acmicpc.net') return;
 
                         const { codeContent, username, submitId } = event.data;
@@ -115,8 +115,12 @@ function addStatusTableButtons() {
                             newWindow.close();
                         } catch (error) {
                             console.error('Error:', error);
+                        } finally {
+                            window.removeEventListener('message', messageHandler);
                         }
-                    });
+                    };
+
+                    window.addEventListener('message', messageHandler);
                 } else {
                     console.error('Pop-up blocked or failed to open.');
                 }
@@ -128,7 +132,6 @@ function addStatusTableButtons() {
         console.error('Status table not found');
     }
 }
-
 
 // Listen for messages in the new window
 window.addEventListener('message', function(event) {
