@@ -98,10 +98,18 @@ function addStatusTableButtons() {
                     const messageHandler = async function(event) {
                         if (event.origin !== 'https://www.acmicpc.net') return;
 
-                        const { codeContent, username, submitId } = event.data;
+                        const { codeContent, username, submitId, userId, problemId, problemTitle, result, memory, time, language, codeLength } = event.data;
                         console.log('CodeMirror content:', codeContent);
                         console.log('Username:', username);
                         console.log('Submit ID:', submitId);
+                        console.log('User ID:', userId);
+                        console.log('Problem ID:', problemId);
+                        console.log('Problem Title:', problemTitle);
+                        console.log('Result:', result);
+                        console.log('Memory:', memory);
+                        console.log('Time:', time);
+                        console.log('Language:', language);
+                        console.log('Code Length:', codeLength);
 
                         try {
                             await fetch('http://localhost:8000/myapp/data', { // 여기에 실제 백엔드 엔드포인트를 넣어야 합니다.
@@ -109,7 +117,7 @@ function addStatusTableButtons() {
                                 headers: {
                                     'Content-Type': 'application/json'
                                 },
-                                body: JSON.stringify({ codeContent: codeContent, submitId: submitId, username: username })
+                                body: JSON.stringify({ codeContent, username, submitId, userId, problemId, problemTitle, result, memory, time, language, codeLength })
                             });
                             console.log('Data sent to backend successfully');
                             newWindow.close();
@@ -138,8 +146,18 @@ window.addEventListener('message', function(event) {
     if (event.data === 'getCodeContent') {
         const codeContent = getCodeMirrorContent();
         const username = findUsername();
-        const submitId = window.location.href.match(/\d+$/)[0];
-        event.source.postMessage({ codeContent, username, submitId }, event.origin);
+        const tableRow = document.querySelector('.table-responsive tbody tr');
+        const submitId = tableRow.cells[0].innerText.trim();
+        const userId = tableRow.cells[1].innerText.trim();
+        const problemId = tableRow.cells[2].innerText.trim();
+        const problemTitle = tableRow.cells[3].innerText.trim();
+        const result = tableRow.cells[4].innerText.trim();
+        const memory = tableRow.cells[5].innerText.trim();
+        const time = tableRow.cells[6].innerText.trim();
+        const language = tableRow.cells[7].innerText.trim();
+        const codeLength = tableRow.cells[8].innerText.trim();
+
+        event.source.postMessage({ codeContent, username, submitId, userId, problemId, problemTitle, result, memory, time, language, codeLength }, event.origin);
     }
 });
 
