@@ -111,6 +111,7 @@ function addStatusTableButtons() {
                         console.log('Language:', language);
                         console.log('Code Length:', codeLength);
 
+
                         try {
                             await fetch('http://localhost:8000/myapp/data', { // 여기에 실제 백엔드 엔드포인트를 넣어야 합니다.
                                 method: 'POST',
@@ -118,6 +119,7 @@ function addStatusTableButtons() {
                                     'Content-Type': 'application/json'
                                 },
                                 body: JSON.stringify({ codeContent, username, submitId, userId, problemId, problemTitle, result, memory, time, language, codeLength })
+
                             });
                             console.log('Data sent to backend successfully');
                             newWindow.close();
