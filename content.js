@@ -1,6 +1,6 @@
 function getCodeMirrorContent() {
     var codeMirrorLines = document.querySelectorAll('.CodeMirror-code .CodeMirror-line');
-    var codeContent = Array.from(codeMirrorLines).map(line => line.innerText.trim()).join('\n');
+    var codeContent = Array.from(codeMirrorLines).map(line => line.innerText.replace(/\s+$/, '')).join('\n');
     return codeContent;
 }
 
@@ -13,21 +13,29 @@ function findUsername() {
 }
 
 function addConsoleButton() {
-    // 특정 URL 형식일 때만 작동
     const urlPattern = /https:\/\/www\.acmicpc\.net\/submit\/\d+/;
     if (!urlPattern.test(window.location.href)) {
         return;
     }
 
-    // Create a new button element
     var newButton = document.createElement('button');
-    newButton.innerText = 'Console Log Content';
+    newButton.innerText = 'Ai 분석';
     newButton.style.marginLeft = '10px';
+    newButton.style.display = 'inline-block';
+    newButton.style.width = '100px';
+    newButton.style.height = '30px';
+    newButton.style.fontSize = '14px';
+    newButton.style.textAlign = 'center';
+    newButton.style.verticalAlign = 'middle';
+    newButton.style.backgroundColor = 'skyblue';
+    newButton.style.border = 'none';
+    newButton.style.color = 'white';
+    newButton.style.cursor = 'pointer';
+    newButton.style.borderRadius = '5px';
 
-    // Add click event to the button
     newButton.addEventListener('click', async function(event) {
-        event.stopPropagation(); // Prevent the click event from bubbling up
-        event.preventDefault();  // Prevent the default action
+        event.stopPropagation();
+        event.preventDefault();
 
         var code = getCodeMirrorContent();
         var username = findUsername();
@@ -38,20 +46,23 @@ function addConsoleButton() {
         console.log('Problem ID:', problemId);
 
         try {
-            await fetch('http://localhost:8000/myapp/data', { // 여기에 실제 백엔드 엔드포인트를 넣어야 합니다.
+            const response = await fetch('http://localhost:8080/myapp/data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ codeContent: code, username: username, problemId: problemId })
+                body: JSON.stringify({ codeContent: code, userName: username, problemId: problemId })
             });
+            const result = await response.json();
+            const codeAnalysisId = result.id;
+            const url = `http://localhost:8080/codeAnalysis/${username}/${codeAnalysisId}`;
+            window.open(url, '_blank');
             console.log('Data sent to backend successfully');
         } catch (error) {
             console.error('Error:', error);
         }
     });
 
-    // Find the submit button and append the new button next to it
     var submitButton = document.querySelector('button[type="submit"]');
     if (submitButton) {
         submitButton.parentNode.appendChild(newButton);
@@ -64,22 +75,31 @@ window.onload = function() {
     addConsoleButton();
 };
 
-// 새로운 탭에 열리게 되는 페이지의 URL
 const baseUrl = 'https://www.acmicpc.net/source/';
 
-// 상태 테이블에 버튼 추가
 function addStatusTableButtons() {
     var table = document.getElementById('status-table');
     if (table) {
         var rows = table.getElementsByTagName('tr');
-        for (var i = 1; i < rows.length; i++) { // Start from 1 to skip the header row
+        for (var i = 1; i < rows.length; i++) {
             let row = rows[i];
-            let submitIdCell = row.getElementsByTagName('td')[0]; // Assuming the first cell has the submit ID
+            let submitIdCell = row.getElementsByTagName('td')[0];
             let submitId = submitIdCell.innerText.trim();
 
-            let buttonCell = row.insertCell(-1); // Insert a cell at the end of the row
+            let buttonCell = row.insertCell(-1);
             let button = document.createElement('button');
-            button.innerText = 'New Button';
+            button.innerText = 'Ai 분석';
+            button.style.display = 'inline-block';
+            button.style.width = '80px';
+            button.style.height = '30px';
+            button.style.fontSize = '14px';
+            button.style.textAlign = 'center';
+            button.style.verticalAlign = 'middle';
+            button.style.backgroundColor = 'skyblue';
+            button.style.border = 'none';
+            button.style.color = 'white';
+            button.style.cursor = 'pointer';
+            button.style.borderRadius = '5px';
 
             button.addEventListener('click', function(event) {
                 event.stopPropagation();
@@ -89,20 +109,17 @@ function addStatusTableButtons() {
                 let newWindow = window.open(url, '_blank');
 
                 if (newWindow) {
-                    // Ensure the new window is fully loaded before attempting to access its content
                     setTimeout(function() {
                         newWindow.postMessage('getCodeContent', '*');
-                    }, 1000);  // 1초 대기 후 postMessage 전송
+                    }, 1000);
 
-                    // Listen for messages from the new window
                     const messageHandler = async function(event) {
                         if (event.origin !== 'https://www.acmicpc.net') return;
 
-                        const { codeContent, username, submitId, userId, problemId, problemTitle, result, memory, time, language, codeLength } = event.data;
+                        const { codeContent, userName, submitId, problemId, problemTitle, result, memory, time, language, codeLength } = event.data;
                         console.log('CodeMirror content:', codeContent);
-                        console.log('Username:', username);
+                        console.log('Username:', userName);
                         console.log('Submit ID:', submitId);
-                        console.log('User ID:', userId);
                         console.log('Problem ID:', problemId);
                         console.log('Problem Title:', problemTitle);
                         console.log('Result:', result);
@@ -111,17 +128,18 @@ function addStatusTableButtons() {
                         console.log('Language:', language);
                         console.log('Code Length:', codeLength);
 
-
                         try {
-                            await fetch('http://localhost:8000/myapp/data', { // 여기에 실제 백엔드 엔드포인트를 넣어야 합니다.
+                            const response = await fetch('http://localhost:8080/myapp/data', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
                                 },
-                                body: JSON.stringify({ codeContent, username, submitId, userId, problemId, problemTitle, result, memory, time, language, codeLength })
-
+                                body: JSON.stringify({ codeContent, submitId, userName, problemId, problemTitle, result, memory, time, language, codeLength })
                             });
-                            console.log('Data sent to backend successfully');
+                            const resultData = await response.json();
+                            const codeAnalysisId = resultData.id;
+                            const url = `http://localhost:8080/codeAnalysis/${userName}/${codeAnalysisId}`;
+                            window.location.href = url;
                             newWindow.close();
                         } catch (error) {
                             console.error('Error:', error);
@@ -143,28 +161,27 @@ function addStatusTableButtons() {
     }
 }
 
-// Listen for messages in the new window
 window.addEventListener('message', function(event) {
     if (event.data === 'getCodeContent') {
         const codeContent = getCodeMirrorContent();
-        const username = findUsername();
+        const submitId = window.location.href.match(/\d+$/)[0];
         const tableRow = document.querySelector('.table-responsive tbody tr');
-        const submitId = tableRow.cells[0].innerText.trim();
-        const userId = tableRow.cells[1].innerText.trim();
-        const problemId = tableRow.cells[2].innerText.trim();
-        const problemTitle = tableRow.cells[3].innerText.trim();
-        const result = tableRow.cells[4].innerText.trim();
-        const memory = tableRow.cells[5].innerText.trim();
-        const time = tableRow.cells[6].innerText.trim();
-        const language = tableRow.cells[7].innerText.trim();
-        const codeLength = tableRow.cells[8].innerText.trim();
-
-        event.source.postMessage({ codeContent, username, submitId, userId, problemId, problemTitle, result, memory, time, language, codeLength }, event.origin);
+        const userName = tableRow.children[1].innerText.trim();
+        const problemId = tableRow.children[2].innerText.trim();
+        const problemTitle = tableRow.children[3].innerText.trim();
+        const result = tableRow.children[4].innerText.trim();
+        const memory = tableRow.children[5].innerText.trim();
+        const time = tableRow.children[6].innerText.trim();
+        const language = tableRow.children[7].innerText.trim();
+        const codeLength = tableRow.children[8].innerText.trim();
+        event.source.postMessage({ codeContent, userName, submitId, problemId, problemTitle, result, memory, time, language, codeLength }, event.origin);
     }
 });
 
-if (window.location.href.match(/https:\/\/www\.acmicpc\.net\/status\?from_mine=1&problem_id=\d+&user_id=\w+/)) {
+const statusUrlPattern = /https:\/\/www\.acmicpc\.net\/status\?from_mine=1&problem_id=\d+&user_id=\w+|https:\/\/www\.acmicpc\.net\/status\?user_id=\w+&problem_id=\d+&from_mine=1/;
+
+if (statusUrlPattern.test(window.location.href)) {
     setTimeout(function() {
         addStatusTableButtons();
-    }, 1000);  // Ensure the DOM is fully loaded
+    }, 1000);
 }
