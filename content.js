@@ -46,7 +46,7 @@ function addConsoleButton() {
         console.log('Problem ID:', problemId);
 
         try {
-            const response = await fetch('http://localhost:8080/myapp/data', {
+            const response = await fetch('http://3.35.115.158:8080/myapp/data', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -55,7 +55,7 @@ function addConsoleButton() {
             });
             const result = await response.json();
             const codeAnalysisId = result.id;
-            const url = `http://localhost:8080/codeAnalysis/${username}/${codeAnalysisId}`;
+            const url = `http://3.35.115.158:8080//codeAnalysis/${codeAnalysisId}`;
             window.open(url, '_blank');
             console.log('Data sent to backend successfully');
         } catch (error) {
@@ -129,7 +129,7 @@ function addStatusTableButtons() {
                         console.log('Code Length:', codeLength);
 
                         try {
-                            const response = await fetch('http://localhost:8080/myapp/data', {
+                            const response = await fetch('http://3.35.115.158:8080/myapp/data', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'
@@ -138,7 +138,7 @@ function addStatusTableButtons() {
                             });
                             const resultData = await response.json();
                             const codeAnalysisId = resultData.id;
-                            const url = `http://localhost:8080/codeAnalysis/${userName}/${codeAnalysisId}`;
+                            const url = `http://3.35.115.158:8080/codeAnalysis/${codeAnalysisId}`;
                             window.location.href = url;
                             newWindow.close();
                         } catch (error) {
